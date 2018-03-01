@@ -59,6 +59,9 @@ def calc_score(ride, car, steps):
     val = len + len2 + car.time
     return val
 
+def ride_scor(ride):
+    val = (ride.origin - ride.destination) + (ride.origin - Point(0, 0)) * ride.start
+    return val
 
 def main(args):
     file = open(args[1], 'r')
@@ -71,9 +74,8 @@ def main(args):
         a_x, a_y, b_x, b_y, start, finish = [int(param) for param in line.split(' ')]
         rides_requests.append(RideRequest(i, Point(a_x, a_y), Point(b_x, b_y), start, finish))
 
-    rides_requests.sort(key=operator.attrgetter('start'))
-    #rides_requests.sort(key=lambda x: (x.origin - Point(0, 0)) * x.start)
-
+    #rides_requests.sort(key=operator.attrgetter('start'))
+    rides_requests.sort(key=lambda x: ride_scor(x))
 
     for ride in rides_requests:
         best_car = calc_score(ride, cars[0], steps)
