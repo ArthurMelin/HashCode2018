@@ -60,7 +60,6 @@ def ride_scor(ride):
     val = (ride.origin - Point(0, 0)) + (ride.origin - ride.destination) / 2 + ride.start * 2
     return val
 
-
 def main(args):
     file = open(args[1], 'r')
     map_rows, map_cols, cars, rides, bonus, steps = [int(param) for param in file.readline().split(' ')]
@@ -83,7 +82,7 @@ def main(args):
                 best_car = i
         the_best_car.rides.append(ride.id)
         the_best_car.move(ride.destination)
-        the_best_car.time += (car.pos - ride.origin) + (ride.destination - ride.origin)
+        the_best_car.time += (the_best_car.pos - ride.origin) + (ride.destination - ride.origin) / 2
 
     for car in cars:
         print(len(car.rides), ' '.join([str(ride) for ride in car.rides]))
