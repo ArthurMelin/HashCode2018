@@ -1,6 +1,19 @@
 #!/usr/bin/python3
 import sys
 
+class Car:
+    def __init__(self, pos):
+        self.pos = pos
+
+    def move(pos):
+        self.pos = pos
+
+class RideRequest:
+    def __init__(self, origin, destination, time):
+        self.origin = origin
+        self.destination = destination
+        self.time = time
+
 def main(args):
     return 0
 
