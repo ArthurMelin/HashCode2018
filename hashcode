@@ -1,0 +1,92 @@
+#!/usr/bin/python3
+import os
+import sys
+import operator
+
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __sub__(self, other):
+        return abs(self.x - other.x) + abs(self.y - other.y)
+
+    def __str__(self):
+        return 'Point(%d, %d)' % (self.x, self.y)
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
+class Car:
+    def __init__(self):
+        self.pos = Point(0, 0)
+        self.rides = []
+        self.moving = False
+
+    def tick(self):
+        self.moving -= 1
+
+    def moving(self):
+        self.moving >= 0
+
+    def move(self, pos):
+        self.moving = pos - self.pos
+        self.pos = pos
+
+    def fulfill(self, ride):
+        if (self.pos != ride.origin):
+            raise Exception('Car not at origin point of ride')
+        ride.fulfilled = True
+        self.rides.append(ride.id)
+        self.move(ride.destination)
+
+    time = 0
+
+class RideRequest:
+    def __init__(self, id, origin, destination, start, finish):
+        self.id = id
+        self.origin = origin
+        self.destination = destination
+        self.start = start
+        self.finish = finish
+        self.fulfilled = False
+
+def calc_score(ride, car):
+    val = (ride.origin - car.pos) + (ride.start + car.time)
+    if car.time + (car.pos - ride.origin) <= ride.start:
+        val += 2
+    if len(car.rides) > 0:
+        val += len(car.rides) * car.time
+    return val
+
+def main(args):
+    file = open(args[1], 'r')
+    map_rows, map_cols, cars, rides, bonus, steps = [int(param) for param in file.readline().split(' ')]
+
+    cars = [Car() for i in range(cars)]
+
+    rides_requests = []
+    for i, line in enumerate(file):
+        a_x, a_y, b_x, b_y, start, finish = [int(param) for param in line.split(' ')]
+        rides_requests.append(RideRequest(i, Point(a_x, a_y), Point(b_x, b_y), start, finish))
+
+    rides_requests.sort(key=operator.attrgetter('start'))
+
+    for ride in rides_requests:
+        best_car = calc_score(ride, cars[0])
+        for car in cars:
+            i = calc_score(ride, car)
+            if i <= best_car:
+                the_best_car = car
+                best_car = i
+        the_best_car.rides.append(ride.id)
+        the_best_car.move(ride.destination)
+        the_best_car.time += ride.destination - ride.origin
+
+    for car in cars:
+        print(len(car.rides), ' '.join([str(ride) for ride in car.rides]))
+
+    return 0
+
+if __name__ == '__main__':
+    exit(main(sys.argv))
