@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import sys
+import operator
 
 class Point:
     def __init__(self, x, y):
@@ -59,7 +60,13 @@ def main(args):
         a_x, a_y, b_x, b_y, start, finish = [int(param) for param in line.split(' ')]
         rides_requests.append(RideRequest(i, Point(a_x, a_y), Point(b_x, b_y), start, finish))
 
-    # CODE
+    rides_requests.sort(key=operator.attrgetter('start'))
+
+    i = 0
+    for ride in rides_requests:
+        cars[i].rides.append(ride.id)
+        i += 1
+        i %= len(cars)
 
     for car in cars:
         print(len(car.rides), ' '.join([str(ride) for ride in car.rides]))
