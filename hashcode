@@ -57,7 +57,7 @@ def calc_score(ride, car, steps):
 
 
 def ride_scor(ride):
-    val = (ride.origin - Point(0, 0)) + ride.start
+    val = (ride.origin - Point(0, 0)) + (ride.origin - ride.destination) / 2 + ride.start * 2
     return val
 
 
@@ -84,9 +84,6 @@ def main(args):
         the_best_car.rides.append(ride.id)
         the_best_car.move(ride.destination)
         the_best_car.time += (car.pos - ride.origin) + (ride.destination - ride.origin)
-
-    #for car in cars:
-    #    rides_requests.sort(key=lambda x: calc_score(x, car, steps))
 
     for car in cars:
         print(len(car.rides), ' '.join([str(ride) for ride in car.rides]))
