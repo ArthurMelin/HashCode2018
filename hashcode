@@ -1,8 +1,16 @@
 #!/usr/bin/python3
 import sys
 
+
 def main(args):
+    string = ""
+    F = open(args[1], "r")
+    start_stuff = F.readline().split(' ')
+    while string:
+        string = F.readline()
+        print (string)
     return 0
+
 
 if __name__ == '__main__':
     exit(main(sys.argv))
