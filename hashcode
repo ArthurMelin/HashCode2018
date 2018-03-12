@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import multiprocessing.pool
 import os
 import sys
 
@@ -13,6 +14,9 @@ class Point:
     def __str__(self):
         return 'Point(%d, %d)' % (self.x, self.y)
 
+    def __repr__(self):
+        return 'Point(%d, %d)' % (self.x, self.y)
+
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 
@@ -20,13 +24,13 @@ class Car:
     def __init__(self):
         self.pos = Point(0, 0)
         self.rides = []
-        self.moving = False
+        self.moving = 0
 
     def tick(self):
         self.moving -= 1
 
-    def moving(self):
-        self.moving >= 0
+    def isMoving(self):
+        return self.moving > 0
 
     def move(self, pos):
         self.moving = pos - self.pos
@@ -35,18 +39,35 @@ class Car:
     def fulfill(self, ride):
         if (self.pos != ride.origin):
             raise Exception('Car not at origin point of ride')
-        ride.fulfilled = True
         self.rides.append(ride.id)
         self.move(ride.destination)
+
+    def __str__(self):
+        return 'Car(%d, %s)' % (self.moving, self.pos)
+
+    def __repr__(self):
+        return 'Car(%d, %s)' % (self.moving, self.pos)
 
 class RideRequest:
     def __init__(self, id, origin, destination, start, finish):
         self.id = id
         self.origin = origin
         self.destination = destination
+        self.length = destination - origin
         self.start = start
         self.finish = finish
-        self.fulfilled = False
+        self.prepared = False
+        self.preparedby = -1
+
+    def __str__(self):
+        return 'RideRequest(%d, %s, %s, %d, %d)     preparedby  %d' % (self.id, self.origin, self.destination, self.start, self.finish, self.preparedby)
+
+    def __repr__(self):
+        return 'RideRequest(%d, %s, %s, %d, %d)     preparedby  %d' % (self.id, self.origin, self.destination, self.start, self.finish, self.preparedby)
+
+def ride_request_weight(args):
+    step, bonus, car, ride_request = args
+
 
 def main(args):
     file = open(args[1], 'r')
@@ -59,7 +80,37 @@ def main(args):
         a_x, a_y, b_x, b_y, start, finish = [int(param) for param in line.split(' ')]
         rides_requests.append(RideRequest(i, Point(a_x, a_y), Point(b_x, b_y), start, finish))
 
-    # CODE
+    for step in range(steps):
+        print(step, len(rides_requests), file=sys.stderr)
+        for car_id, car in enumerate(cars):
+            if not car.isMoving():
+                best_score = 0
+                best_score_ride = -1
+                best_prep = 214167890
+                best_prep_ride = -1
+                for ride_idx, ride_request in enumerate(rides_requests):
+                    if not ride_request.prepared or ride_request.preparedby == car_id:
+                        preparation = (car.pos - ride_request.origin) + (ride_request.start - step)
+                        score = 0
+                        if preparation == 0:
+                            if step < (ride_request.finish - ride_request.length):
+                                score += ride_request.length
+                            if step < ride_request.start:
+                                score += bonus
+                        if preparation < best_prep:
+                            best_prep = preparation
+                            best_prep_ride = ride_idx
+                        if score > best_score:
+                            best_score = score
+                            best_score_ride = ride_idx
+
+                if best_score_ride != -1:
+                    car.fulfill(rides_requests[best_score_ride])
+                    del rides_requests[best_score_ride]
+                elif best_prep_ride != -1:
+                    rides_requests[best_prep_ride].prepared = True
+                    rides_requests[best_prep_ride].preparedby = car_id
+            car.tick()
 
     for car in cars:
         print(len(car.rides), ' '.join([str(ride) for ride in car.rides]))
